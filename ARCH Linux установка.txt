@@ -1,0 +1,142 @@
+1.	-------------Проверить интернет:-------------
+	ping -c 3  google.com
+
+1.1 -------------Подключить wifi: (ВНИМАНИЕ wifi-menu нет)-------------
+	-'YOURDEVICE' - Wi-fi модуль (например wlan0)
+	-'YOURSSID' - название Wi-fi к которому нужно подключиться
+	-'PASSPHRASE' - пароль от Wi-fi
+	
+	iwctl (запускаем настройку - root сменится на [iwd]#) 
+	device list (смотрим список устройств)
+	device YOURDEVICE set-property Powered on (находим вафлю, включаем, если выключена)
+	station YOURDEVICE scan (запускаем поиск сетей)
+	station YOURDEVICE get-networks (смотрим доступные сети)
+	station YOURDEVICE connect YOURSSID (подключаемя к сети (если название с пробелами то заключаем в кавычки "YOUR SSID"))
+	station YOURDEVICE connect YOURSSID --passphrase PASSPHRASE (добавляем пароль если он стоит)
+	exit
+	
+	-------------Подключение через nmcli-------------
+	nmcli dev status (проверяем наличие wifi модуля)
+	nmcli radio wifi (включен ли wifi)
+	nmcli radio wifi on (включаем если нет)
+	nmcli dev wifi list (смотрим доступные сети)
+	nmcli dev wifi connect "YOURSSID" password "PASSPHRASE"(в кавычках!) (подключаемя к сети)
+	
+	-------------ЗАПАСНОЙ ВАРИАНТ-------------
+	iw dev (показать интерфейсы подключения)
+	ip link set wlo1 up (wlo1 - здесь имя вашего модуля из предыдущей команды)
+	iw dev wlo1 scan | grep SSID (сканируем сети)
+	wpa_passphrase ваш_wifi здесь_пароль_wifi > wpa_ваш_wifi.conf
+	wpa_supplicant -B -i wlo1 -c wpa_ваш_wifi.conf (подключаемся)
+	
+2.	-------------Проверка и разметка разделов на диске-------------
+	lsblk 			(просмотр разделов)
+	fdisk -l 		(Если у вас несколько дисков, а вы хотите установить на какой-то конкретный, то можно посмотреть диски по размерам.)
+
+3. 	-------------Разметка диска-------------
+	1.	cfdisk /dev/sda (sda - sdb... смотря как диск обозначен)
+	2.	Выбрать gpt.
+	3.	Создаем раздел uefi boot
+		new -> 1G -> type -> EFI System
+	4.	Создаем раздел swap... (Linux swap - обычно пропускаю)
+	5.	Создаем раздел под home - Linux filesystem
+	6.	Выбрать write -> Enter-> ввести yes
+	7.	Quit
+	8.	Проверяем с помощью lsblk
+	
+4.	-------------Форматируем диск-------------
+	1.	mkfs.fat -F32 /dev/sda1 (под уефай)
+	2.	mkfs.ext4 /dev/sda2 (под систему)
+		mkfs.f2fs /dev/sda2 (можно и в F2FS если хочется, но при внезапной потере питания или перезагрузке теряются данные)
+
+5.	-------------Монтируем-------------
+	1.	mount /dev/sda2 /mnt (Монтируем root)
+	2.	mkdir /mnt/home (Создаём папку home)
+
+6.	-------------Установка линукс (а также судо, текстовый редактор нано)-------------
+	pacstrap -i /mnt base linux linux-firmware sudo nano
+	
+7.	-------------Создадим  fstab файл-------------
+	genfstab -U -p /mnt >> /mnt/etc/fstab
+	
+8.	-------------Меняем рут в установленную систему для установки программ и настройки.-------------
+	arch-chroot /mnt /bin/bash
+	
+9.	-------------Настройка файла локали-------------
+	1.	nano /etc/locale.gen (открываем файл через нано)
+	2.	Находим там #en_US.UTF-8 и #ru_RU.UTF-8 стираем #. 
+			PS: можно использовать Ctrl + W для поиска языка в файле.
+			Чтобы всё сохранить Ctrl + O, затем Enter и Ctrl + X, затем Enter.
+	3.	locale-gen (Генерируем локаль)
+	4.	echo "LANG=en_US.UTF-8" > /etc/locale.conf (русский потом можно в настройках включить)
+	5.	echo "FONT=cyr-sun16" > /etc/vconsole.conf (поддержка русского шрифта в консоле (нужно будет уточнить))
+
+10.	-------------Настройка часового пояса и времени-------------
+	1.	ln -sf /usr/share/zoneinfo/Europe/Moscow /etc/localtime
+	2.	hwclock --systohc --utc (установка времени)
+	3.	timedatectl set-ntp true (автокоррекция времени - не всегда работает)
+	4.	date (проверка времени)
+
+11.	-------------Имя хоста и адрес-------------
+	1.	echo ArchMe > /etc/hostname (ArchMe название твоего компьютера(как хочешь, хоть kakashkaPC))
+	2.	Если у вас ip статический, используйте свой.
+			nano /etc/hosts (открываем хостс)
+			127.0.1.1 localhost.localdomain ArchMe
+
+12.	-------------Установка сетевого менеджера (а также можно другие проги)-------------
+	1.	pacman -S networkmanager dialog wpa_supplicant network-manager-applet amd-ucode (intel-ucode)
+	2.	systemctl enable NetworkManager (включаем его)
+
+13.	-------------Меняем пароль рут пользователя-------------
+	passwd (затем вводим пароль - он невидимый)
+
+14.	-------------GRUB — это загрузчик, который нужен, чтоб запускать нашу установленную систему.-------------
+	1.	pacman -S grub efibootmgr (установка граба)
+	2.	mkdir /boot/efi (создаем папку под загрузчик)
+	3.	mount /dev/sda1 /boot/efi (монтируем его)
+	4.	lsblk (проверяем - должны появиться напротив /dev/sda1 - /boot/efi)
+	5.	grub-install --target=x86_64-efi --bootloader-id=GRUB --efi-directory=/boot/efi --removable (устанавливаем граб для системы)
+	6.	grub-mkconfig -o /boot/grub/grub.cfg (создаем конфиг граба)
+
+15.	-------------Можно перезагрузиться-------------
+	1.	exit (выходим из хрута)
+	2.	umount -R /mnt (размотируем наш диск)
+	3.	reboot (перезагрузка)
+
+16.	-------------Должен загрузиться граб и система-------------
+	если нет, то меняем порядок загрузки в биосе или выключаем и вытаскиваем флешку
+	
+17.	-------------Входим в рут-------------
+	login: root
+	password: который вводили
+
+18.	-------------Добавим пользователя-------------
+	1.	useradd -m -g users -G wheel -s /bin/bash username (username - имя пользователя(kakashka))
+	2.	passwd username (устанавливаем пароль для пользователя)
+	3.	EDITOR=nano visudo (даем права для пользователя - открывем в нано)
+	4.	найти # %wheel ALL=(ALL:ALL) ALL (и убрать #)
+	5.	Ctrl + O, затем Enter и Ctrl + X, затем Enter
+	
+19.	-------------Установка программ и драйверов на аудио, а также экрана приветствия lightdm-------------
+	1.	pacman -S pulseaudio pulseaudio-alsa alsa-utils xorg xorg-xinit xorg-server lightdm lightdm-gtk-greeter fish xterm
+	2.	systemctl enable lightdm (включаем экран приветствия и ввода пользователя)
+			можно установить другой greeter (например sddm)
+	3.	startx (для запуска x сессии, если нужно проверить {можно пропустить})
+
+20. -------------Установка графического окружения:-------------
+	GNOME:
+		sudo pacman -S ttf-dejavu gnome
+		reboot
+		
+	KDE Plasma:
+		sudo pacman -S plasma
+		sudo pacman -S plasma-desktop (если не нужны приложения)
+		sudo pacman -S kde-applications (или установить только приложения кде)
+		reboot
+		
+	i3: (ЖЕЛАТЕЛЬНО УСТАНОВИТЬ(+НАСТРОИТЬ(КОНФИГ ЕСТЬ НА ОБЛАКЕ)) КАК ЗАПАСНОЙ РАБОЧИЙ СТОЛ ЕСЛИ ПЛАЗМА ИЛИ ГНОМ СЛОМАЮТСЯ)
+		sudo pacman -S i3 i3lock i3status polybar rofi feh
+		reboot
+
+
+

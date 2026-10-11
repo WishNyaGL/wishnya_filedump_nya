@@ -1,0 +1,66 @@
+//СТАРЫЕ КОМАНДЫ
+sudo pacman -Syy 							\\Обновление базы данных
+pacman -Qqe > pkglist.txt (yay)				\\Сохранение файла с пакетами
+sudo pacman -Syu	 (yay или yay -Syu)		\\Обновление всего
+sudo pacman -S <package name>
+sudo pacman -S archlinux-keyring
+
+yay -S archlinux-keyring				\\обновление подписей ключей пакетов (если система давно не обновлялась)
+yay -Syy								\\Обновление базы данных
+yay -Syu								\\Обновление всего (можно просто yay)
+yay -Qqe > pkglist.txt (yay)			\\Сохранение файла со списком пакетов
+yay -S <package name>					\\Установить пакет
+yay -R									\\Удалить пакет
+yay -Rns								\\Удалить пакет и зависимости
+yay -Rns $(yay -Qdtq)					\\Удалить одиночные пакеты (сироты) 
+yay -Sc									\\Очистить кэш
+yay -Qqe > pkglist.txt (yay)			\\сохранить список установленных пакетов в pkglist.txt
+pacman -Qo <file path/name>				\\Определить принадлежит ли файл какому либо пакету
+
+============================Если пакеты сломаны/недоустановились их можно найти и починить так============================
+	sudo pacman -Qqn | sudo pacman -S -
+	(пробуем полную переустановку всех пакетов)
+	 Если размер после установки будет изменен (не 0.00 мб),
+	 то есть поломанные пакеты и во время установки пакман будет ругаться на уже существующие файлы.)
+	 
+	yay -S --overwrite \* пакет1 пакет2...
+	(Из того списка ошибок найти проблемные пакеты и переустановить командой)
+	(не рекомендуется если сломались системные пакеты типа линукс и библиотеки
+	тогда только через лайв-сд или другой комп на линуксе использовать)
+	
+	
+	https://gist.github.com/Earnestly/33512034001ab666168b Способ чище и элегантнее (-dbonly), но пакеты все равно нужно искать(
+============================||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||============================
+
+sudo sysctl -w net.ipv4.ip_default_ttl=65 \\Изменить TTL на 65 для вайфая
+
+//Отключение ускорении мыши в x-сервере
+"/usr/share/X11/xorg.conf.d/40-libinput.conf"
+Section "InputClass"
+ Identifier "libinput pointer catchall"
+ MatchIsPointer "on"
+ MatchDevicePath "/dev/input/event*"
+ Driver "libinput"
+ Option "Accel Profile Enabled" "0 1 0" <----- добавить эту строку (цифры могут отличаться)
+EndSection
+
+			
+
+//распаковка всех зипов в папке (применять в fish bash)
+for name in *.zip
+	unzip $name -d (string split --right --max 1 --field 1 . $name)
+end
+
+//для файлов с японскими символами
+for name in *.zip
+	unzip -O shift-jis $name -d (string split --right --max 1 --field 1 . $name)
+end
+
+//запаковать архив по частям в ~500 мб
+zip -r -s 500m название_архива.zip название_файла(папки)
+такой архив распаковывается только 7зипом
+
+//вывод дат установки пакетов
+for name in $(cat FILE_HERE)
+	paclog --package=$name
+end

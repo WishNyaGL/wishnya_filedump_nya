@@ -1,0 +1,56 @@
+To enable multilib repository, uncomment the [multilib] section in /etc/pacman.conf: 
+
+Устанавливаем yay
+	1. sudo pacman -Syu
+	2. sudo pacman -S --needed base-devel git
+	3. git clone https://aur.archlinux.org/yay.git
+	4. cd yay
+	5. makepkg -si
+
+chsh -s /bin/fish  (после установки фиша)
+
+После установки системы установить данные пакеты:
+в формате строки (добавить --needed для пропуска уже установленных пакетов)
+
+[AMD]
+adobe-source-han-sans-cn-fonts adobe-source-han-sans-tw-fonts android-file-transfer android-tools audacity baobab blender bluez-utils code cups deluge-gtk discord dolphin drkonqi earlyoom evince evtest firefox flameshot fuseiso gameconqueror gamescope geany gimp gsmartcontrol handbrake wxhexeditor hplip htop icoutils kdebugsettings kdenlive krita lib32-alsa-lib lib32-alsa-plugins lib32-gnutls lib32-gst-plugins-base lib32-gst-plugins-good lib32-libpulse lib32-mesa-utils lib32-mpg123 lib32-openal lib32-vulkan-radeon lib32-libxcomposite libreoffice-fresh mtpfs obs-studio openssl-1.1 psensor pulseaudio-jack python-pip python-pyalsa qjackctl rofi scrot shotcut simple-scan smartmontools smplayer telegram-desktop tk tree ttf-baekmuk ttf-liberation usbutils vkd3d vlc vulkan-radeon vulkan-tools wget wine wine-gecko wine-mono winetricks xf86-video-amdgpu xpad unzip opensnitch opensnitch-ebpf-module python-pysdl2 rebuild-detector byedpi-bin fastfetch p7zip p7zip-gui kdiff3 kde-gtk-config sof-firmware bluedevil bluez plasma-nm plasma-pa
+
+[INTEL]
+adobe-source-han-sans-cn-fonts adobe-source-han-sans-tw-fonts android-file-transfer android-tools audacity baobab blender bluez-utils code cups deluge-gtk discord dolphin drkonqi earlyoom evince evtest firefox flameshot fuseiso gameconqueror gamescope geany gimp gsmartcontrol handbrake wxhexeditor hplip htop icoutils kdebugsettings kdenlive krita lib32-alsa-lib lib32-alsa-plugins lib32-gnutls lib32-gst-plugins-base lib32-gst-plugins-good lib32-libpulse lib32-mesa-utils lib32-mpg123 lib32-openal lib32-libxcomposite libreoffice-fresh mtpfs obs-studio openssl-1.1 psensor pulseaudio-jack python-pip python-pyalsa qjackctl rofi scrot shotcut simple-scan smartmontools smplayer telegram-desktop tk tree ttf-baekmuk ttf-liberation usbutils vkd3d vlc vulkan-tools wget wine wine-gecko wine-mono winetricks  unzip opensnitch opensnitch-ebpf-module python-pysdl2 rebuild-detector byedpi-bin fastfetch p7zip p7zip-gui kdiff3 vulkan-icd-loader lib32-vulkan-icd-loader vulkan-intel lib32-vulkan-intel kde-gtk-config sof-firmware bluedevil bluez plasma-nm plasma-pa
+
+AUR:
+alien_package_converter blender-3.6-bin crow-translate debtap downgrade gputest iat jmtpfs joy2key jre opensnitch opensnitch-ebpf-module puddletag python-googletrans python-unidecode qdirstat-bin rar simple-mtpfs tauon-music-box ttf-mplus ventoy-bin wineasio woeusb xclicker
+
+(для графического планшета)
+dkms linux-headers 
+digimend-kernel-drivers-dkms-git 
+
+(если кде. то данные программы из гнома будут полезны)
+	gnome browser (epiphany)
+	gnome filemanager (nautilus)
+	sushi (quick preview nautilus)
+	gnome eye (eog)
+	file-roller (gnome-extra)
+	gnome-terminal
+	gedit (kate)
+	gnome-disk-utility
+	gnome-system-monitor
+
+настроить управление питанием видеокарт амд: (если система фризит намертво при включении 3д приложений)
+		добавить в /etc/default/grub (изменить)
+			GRUB_CMDLINE_LINUX_DEFAULT="amdgpu.runpm=0"
+
+иногда kde грузится с черным экраном, прикол в том что драйвер видео не успевает загрузиться (лол), поэтому в /etc/mkinitcpio.conf добавить amdgpu:
+# in this array.  For instance:
+#     MODULES=(usbhid xhci_hcd)
+MODULES=(amdgpu)
+
+
+настройка i3
+	скопировать файлы в /.config/
+
+настройка mpv-player (чтобы видео разрешения больше чем экран уменьшались и не уходили за границы и наоборот - маленькие увеличивались)
+	создать файл:
+		home/zen/.config/mpv/config
+	с параметром --autofit=100%x600 
+
